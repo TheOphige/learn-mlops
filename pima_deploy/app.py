@@ -1,16 +1,9 @@
 import joblib
 from flask import Flask, request, jsonify
 
-#load in model
-log_reg = joblib.load('final_model.pkl')
 
-# create flask app
-app = Flask('pima')
-
-@app.route('/predict', methods=['POST'])
-def predict():
-    person= request.get_json()
-
+#
+def x_preper(person):
     from sklearn.feature_extraction import DictVectorizer
     dv = DictVectorizer(sparse= False)
 
@@ -26,6 +19,19 @@ def predict():
     ])
 
     X_prep = pipeline.fit_transform(X)
+    return X_prep
+
+#load in model
+log_reg = joblib.load('final_model.pkl')
+
+# create flask app
+app = Flask('pima')
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    person= request.get_json()
+
+    X_prep = x_preper(person)
 
     y_pred = log_reg.predict_proba(X_prep)[0, 1]
     diabetic = y_pred >= 0.5
